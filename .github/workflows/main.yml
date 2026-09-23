@@ -19,7 +19,7 @@ jobs:
       # Generates the missing android/ (and other platform) folders —
       # safe to run even though lib/ and pubspec.yaml already exist.
       - name: Generate platform folders
-        run: flutter create . --platforms=android --org com.sit.puducherry
+        run: flutter create . --platforms=android --org com.sit.puducherry --project-name sit_eservices
 
       - name: Get dependencies
         run: flutter pub get
