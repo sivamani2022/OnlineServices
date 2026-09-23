@@ -1,0 +1,34 @@
+name: Build APK
+
+on:
+  workflow_dispatch:      # lets you click "Run workflow" manually on GitHub
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      # Generates the missing android/ (and other platform) folders —
+      # safe to run even though lib/ and pubspec.yaml already exist.
+      - name: Generate platform folders
+        run: flutter create . --platforms=android --org com.sit.puducherry
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build release APK
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
