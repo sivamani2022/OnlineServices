@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <style>
+    :root {
+      --primary: #0b5fa5;
+      --primary-dark: #073e6e;
+      --accent: #e8871e;
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --text: #1c2733;
+      --muted: #667080;
+      --border: #e3e7ee;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      padding: 18px 16px 16px;
+      position: sticky; top: 0; z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    header .row { display: flex; align-items: center; gap: 10px; }
+    header .back-btn {
+      background: rgba(255,255,255,0.18);
+      border: none; color: #fff; border-radius: 8px;
+      width: 34px; height: 34px; font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 17px; margin: 0; font-weight: 600; flex: 1; }
+    header .subtitle { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+    .login-link {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #fff; font-size: 12px; padding: 6px 10px;
+      border-radius: 20px; cursor: pointer; white-space: nowrap;
+    }
+
+    main { padding: 14px 14px 90px; max-width: 640px; margin: 0 auto; }
+
+    .search-box {
+      width: 100%; padding: 11px 14px; border-radius: 12px;
+      border: 1px solid var(--border); font-size: 14px;
+      margin-bottom: 14px; background: #fff;
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .dept-card {
+      background: var(--card); border-radius: var(--radius);
+      padding: 16px 12px; text-align: center; cursor: pointer;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: transform 0.1s ease;
+    }
+    .dept-card:active { transform: scale(0.97); }
+    .dept-icon { font-size: 30px; margin-bottom: 8px; }
+    .dept-name { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+    .dept-count { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+    .service-card {
+      background: var(--card); border-radius: var(--radius);
+      padding: 14px 16px; margin-bottom: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .service-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+    .service-desc { font-size: 13px; color: var(--muted); margin-bottom: 10px; line-height: 1.4; }
+    .service-actions { display: flex; gap: 8px; align-items: center; }
+    .open-btn {
+      background: var(--primary); color: #fff; border: none;
+      padding: 8px 14px; border-radius: 8px; font-size: 13px;
+      text-decoration: none; font-weight: 500; cursor: pointer;
+    }
+    .icon-btn {
+      background: none; border: 1px solid var(--border);
+      color: var(--muted); padding: 7px 10px; border-radius: 8px;
+      font-size: 13px; cursor: pointer;
+    }
+    .icon-btn.danger { color: #c0392b; border-color: #f1c9c2; }
+
+    .empty-state { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 14px; }
+
+    .fab {
+      position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      right: 20px; background: var(--accent); color: #fff; border: none;
+      width: 54px; height: 54px; border-radius: 50%; font-size: 26px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; z-index: 5;
+    }
+
+    /* Modal */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(10,20,30,0.5);
+      display: none; align-items: flex-end; justify-content: center; z-index: 50;
+    }
+    .overlay.open { display: flex; }
+    .sheet {
+      background: #fff; width: 100%; max-width: 480px;
+      border-radius: 18px 18px 0 0; padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+      max-height: 88vh; overflow-y: auto;
+    }
+    .sheet h2 { margin: 0 0 14px; font-size: 17px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 5px; font-weight: 500; }
+    .field input, .field textarea {
+      width: 100%; padding: 10px 12px; border-radius: 9px;
+      border: 1px solid var(--border); font-size: 14px; font-family: inherit;
+    }
+    .field textarea { min-height: 70px; resize: vertical; }
+    .btn-row { display: flex; gap: 10px; margin-top: 16px; }
+    .btn-primary, .btn-secondary {
+      flex: 1; padding: 12px; border-radius: 10px; border: none;
+      font-size: 14.5px; font-weight: 600; cursor: pointer;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-secondary { background: #eef1f5; color: var(--text); }
+    .form-msg { font-size: 12.5px; margin-top: 8px; min-height: 16px; }
+    .form-msg.error { color: #c0392b; }
+    .form-msg.success { color: #1a8a4b; }
+
+    .admin-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px;
+    }
+    .admin-header .dept-title { font-weight: 700; font-size: 16px; }
+    .logout-link { font-size: 12.5px; color: var(--primary); cursor: pointer; }
+
+    .spinner {
+      width: 16px; height: 16px; border: 2px solid #fff;
+      border-top-color: transparent; border-radius: 50%;
+      display: inline-block; animation: spin 0.7s linear infinite; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-row { text-align: center; padding: 30px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="row">
+      <button class="back-btn" id="backBtn" style="display:none;" onclick="goHome()">←</button>
+      <div style="flex:1;">
+        <h1 id="headerTitle">e-Services Directory</h1>
+        <div class="subtitle" id="headerSubtitle">Government of Puducherry — SIT</div>
+      </div>
+      <button class="login-link" id="loginLink" onclick="openLogin()">Dept Login</button>
+    </div>
+  </header>
+
+  <main id="mainContent">
+    <div class="loading-row">Loading departments…</div>
+  </main>
+
+  <button class="fab" id="fabAdd" style="display:none;" onclick="openServiceForm()">+</button>
+
+  <!-- LOGIN MODAL -->
+  <div class="overlay" id="loginOverlay">
+    <div class="sheet">
+      <h2>Department Login</h2>
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="loginUsername" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" autocomplete="current-password">
+      </div>
+      <div class="form-msg error" id="loginMsg"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="closeLogin()">Cancel</button>
+        <button class="btn-primary" id="loginSubmitBtn" onclick="submitLogin()">Log In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD / EDIT SERVICE MODAL -->
+  <div class="overlay" id="serviceOverlay">
+    <div class="sheet">
+      <h2 id="serviceFormTitle">Add Service</h2>
+      <div class="field">
+        <label>Service Name</label>
+        <input type="text" id="svcName" placeholder="e.g. Birth Certificate Application">
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea id="svcDesc" placeholder="Short description of the service"></textarea>
+      </div>
+      <div class="field">
+        <label>Service URL</label>
+        <input type="text" id="svcUrl" placeholder="https://...">
+      </div>
+      <div class="form-msg error" id="svcMsg"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="closeServiceForm()">Cancel</button>
+        <button class="btn-primary" id="svcSubmitBtn" onclick="submitService()">Save</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ---------------- STATE ----------------
+  var state = {
+    view: 'dashboard',       // 'dashboard' | 'services' | 'admin'
+    departments: [],
+    currentDept: null,       // {id, name, icon}
+    currentServices: [],
+    session: null,           // {deptId, deptName}
+    editingServiceId: null
+  };
+
+  var LOGGED_IN_KEY = 'sitDeptSession'; // sessionStorage only (per-tab, no long-term storage)
+
+  document.addEventListener('DOMContentLoaded', function () {
+    try {
+      var saved = sessionStorage.getItem(LOGGED_IN_KEY);
+      if (saved) state.session = JSON.parse(saved);
+    } catch (e) {}
+    loadDashboard();
+  });
+
+  // ---------------- NAVIGATION ----------------
+  function goHome() {
+    state.view = 'dashboard';
+    document.getElementById('backBtn').style.display = 'none';
+    document.getElementById('fabAdd').style.display = 'none';
+    document.getElementById('headerTitle').textContent = 'e-Services Directory';
+    document.getElementById('headerSubtitle').textContent = 'Government of Puducherry — SIT';
+    updateLoginLink();
+    loadDashboard();
+  }
+
+  function updateLoginLink() {
+    var link = document.getElementById('loginLink');
+    if (state.session) {
+      link.textContent = state.session.deptName.split(' ')[0] + ' ▾';
+      link.onclick = openAdminFromSession;
+    } else {
+      link.textContent = 'Dept Login';
+      link.onclick = openLogin;
+    }
+  }
+
+  // ---------------- DASHBOARD ----------------
+  function loadDashboard() {
+    var main = document.getElementById('mainContent');
+    main.innerHTML = '<div class="loading-row">Loading departments…</div>';
+    updateLoginLink();
+    google.script.run.withSuccessHandler(function (depts) {
+      state.departments = depts;
+      renderDashboard(depts);
+    }).withFailureHandler(showLoadError).getDepartments();
+  }
+
+  function renderDashboard(depts) {
+    var main = document.getElementById('mainContent');
+    if (!depts.length) {
+      main.innerHTML = '<div class="empty-state">No departments have been added yet.</div>';
+      return;
+    }
+    var html = '<input class="search-box" placeholder="Search departments…" oninput="filterDepts(this.value)">';
+    html += '<div class="grid" id="deptGrid">';
+    depts.forEach(function (d) {
+      html += '<div class="dept-card" onclick="openDept(\'' + d.id + '\')">' +
+        '<div class="dept-icon">' + d.icon + '</div>' +
+        '<div class="dept-name">' + escapeHtml(d.name) + '</div>' +
+        '<div class="dept-count">' + d.serviceCount + ' service' + (d.serviceCount === 1 ? '' : 's') + '</div>' +
+        '</div>';
+    });
+    html += '</div>';
+    main.innerHTML = html;
+  }
+
+  function filterDepts(q) {
+    q = q.toLowerCase();
+    var filtered = state.departments.filter(function (d) {
+      return d.name.toLowerCase().indexOf(q) !== -1;
+    });
+    var grid = document.getElementById('deptGrid');
+    var html = '';
+    filtered.forEach(function (d) {
+      html += '<div class="dept-card" onclick="openDept(\'' + d.id + '\')">' +
+        '<div class="dept-icon">' + d.icon + '</div>' +
+        '<div class="dept-name">' + escapeHtml(d.name) + '</div>' +
+        '<div class="dept-count">' + d.serviceCount + ' service' + (d.serviceCount === 1 ? '' : 's') + '</div>' +
+        '</div>';
+    });
+    grid.innerHTML = html;
+  }
+
+  // ---------------- DEPARTMENT SERVICES (PUBLIC VIEW) ----------------
+  function openDept(deptId) {
+    var dept = state.departments.find(function (d) { return d.id === deptId; });
+    if (!dept) return;
+    state.currentDept = dept;
+    state.view = 'services';
+
+    document.getElementById('backBtn').style.display = 'flex';
+    document.getElementById('headerTitle').textContent = dept.icon + ' ' + dept.name;
+    document.getElementById('headerSubtitle').textContent = 'Online services';
+    document.getElementById('fabAdd').style.display =
+      (state.session && state.session.deptId === deptId) ? 'block' : 'none';
+
+    var main = document.getElementById('mainContent');
+    main.innerHTML = '<div class="loading-row">Loading services…</div>';
+
+    google.script.run.withSuccessHandler(function (services) {
+      state.currentServices = services;
+      renderServices(services, false);
+    }).withFailureHandler(showLoadError).getServicesForDept(deptId);
+  }
+
+  function renderServices(services, isAdmin) {
+    var main = document.getElementById('mainContent');
+    if (!services.length) {
+      main.innerHTML = '<div class="empty-state">No services listed for this department yet' +
+        (isAdmin ? '. Tap + to add one.' : '.') + '</div>';
+      return;
+    }
+    var html = '';
+    services.forEach(function (s) {
+      html += '<div class="service-card">' +
+        '<div class="service-name">' + escapeHtml(s.name) + '</div>' +
+        '<div class="service-desc">' + escapeHtml(s.description || '') + '</div>' +
+        '<div class="service-actions">' +
+        '<a class="open-btn" href="' + escapeAttr(s.url) + '" target="_blank" rel="noopener">Open Service ↗</a>';
+      if (isAdmin) {
+        html += '<button class="icon-btn" onclick="editService(\'' + s.id + '\')">Edit</button>' +
+          '<button class="icon-btn danger" onclick="removeService(\'' + s.id + '\')">Delete</button>';
+      }
+      html += '</div></div>';
+    });
+    main.innerHTML = html;
+  }
+
+  // ---------------- LOGIN ----------------
+  function openLogin() {
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginMsg').textContent = '';
+    document.getElementById('loginOverlay').classList.add('open');
+  }
+  function closeLogin() {
+    document.getElementById('loginOverlay').classList.remove('open');
+  }
+
+  function submitLogin() {
+    var u = document.getElementById('loginUsername').value.trim();
+    var p = document.getElementById('loginPassword').value;
+    var msg = document.getElementById('loginMsg');
+    var btn = document.getElementById('loginSubmitBtn');
+    if (!u || !p) { msg.textContent = 'Enter username and password.'; return; }
+    msg.textContent = '';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>';
+
+    google.script.run.withSuccessHandler(function (res) {
+      btn.disabled = false;
+      btn.textContent = 'Log In';
+      if (res.success) {
+        state.session = { deptId: res.deptId, deptName: res.deptName };
+        try { sessionStorage.setItem(LOGGED_IN_KEY, JSON.stringify(state.session)); } catch (e) {}
+        closeLogin();
+        openAdminFromSession();
+      } else {
+        msg.textContent = res.message || 'Login failed.';
+      }
+    }).withFailureHandler(function (err) {
+      btn.disabled = false; btn.textContent = 'Log In';
+      msg.textContent = 'Error: ' + err.message;
+    }).loginDept(u, p);
+  }
+
+  function openAdminFromSession() {
+    if (!state.session) { openLogin(); return; }
+    var dept = state.departments.find(function (d) { return d.id === state.session.deptId; });
+    state.currentDept = dept || { id: state.session.deptId, name: state.session.deptName, icon: '🏢' };
+    state.view = 'admin';
+
+    document.getElementById('backBtn').style.display = 'flex';
+    document.getElementById('headerTitle').textContent = state.currentDept.icon + ' ' + state.currentDept.name;
+    document.getElementById('headerSubtitle').textContent = 'Manage your services';
+    document.getElementById('fabAdd').style.display = 'block';
+
+    var main = document.getElementById('mainContent');
+    main.innerHTML = '<div class="admin-header"><span class="dept-title">Your Services</span>' +
+      '<span class="logout-link" onclick="logout()">Log out</span></div>' +
+      '<div id="adminServiceList" class="loading-row">Loading…</div>';
+
+    google.script.run.withSuccessHandler(function (services) {
+      state.currentServices = services;
+      var container = document.createElement('div');
+      document.getElementById('mainContent').querySelector('#adminServiceList').outerHTML = '<div id="adminServiceListWrap"></div>';
+      renderAdminList(services);
+    }).withFailureHandler(showLoadError).getServicesForDept(state.currentDept.id);
+  }
+
+  function renderAdminList(services) {
+    var wrap = document.getElementById('adminServiceListWrap');
+    if (!services.length) {
+      wrap.innerHTML = '<div class="empty-state">No services listed yet. Tap + to add one.</div>';
+      return;
+    }
+    var html = '';
+    services.forEach(function (s) {
+      html += '<div class="service-card">' +
+        '<div class="service-name">' + escapeHtml(s.name) + '</div>' +
+        '<div class="service-desc">' + escapeHtml(s.description || '') + '</div>' +
+        '<div class="service-actions">' +
+        '<a class="open-btn" href="' + escapeAttr(s.url) + '" target="_blank" rel="noopener">Open ↗</a>' +
+        '<button class="icon-btn" onclick="editService(\'' + s.id + '\')">Edit</button>' +
+        '<button class="icon-btn danger" onclick="removeService(\'' + s.id + '\')">Delete</button>' +
+        '</div></div>';
+    });
+    wrap.innerHTML = html;
+  }
+
+  function logout() {
+    state.session = null;
+    try { sessionStorage.removeItem(LOGGED_IN_KEY); } catch (e) {}
+    goHome();
+  }
+
+  // ---------------- ADD / EDIT SERVICE ----------------
+  function openServiceForm() {
+    state.editingServiceId = null;
+    document.getElementById('serviceFormTitle').textContent = 'Add Service';
+    document.getElementById('svcName').value = '';
+    document.getElementById('svcDesc').value = '';
+    document.getElementById('svcUrl').value = '';
+    document.getElementById('svcMsg').textContent = '';
+    document.getElementById('serviceOverlay').classList.add('open');
+  }
+
+  function editService(serviceId) {
+    var s = state.currentServices.find(function (x) { return x.id === serviceId; });
+    if (!s) return;
+    state.editingServiceId = serviceId;
+    document.getElementById('serviceFormTitle').textContent = 'Edit Service';
+    document.getElementById('svcName').value = s.name;
+    document.getElementById('svcDesc').value = s.description || '';
+    document.getElementById('svcUrl').value = s.url;
+    document.getElementById('svcMsg').textContent = '';
+    document.getElementById('serviceOverlay').classList.add('open');
+  }
+
+  function closeServiceForm() {
+    document.getElementById('serviceOverlay').classList.remove('open');
+  }
+
+  function submitService() {
+    if (!state.session) { closeServiceForm(); openLogin(); return; }
+    var name = document.getElementById('svcName').value.trim();
+    var desc = document.getElementById('svcDesc').value.trim();
+    var url = document.getElementById('svcUrl').value.trim();
+    var msg = document.getElementById('svcMsg');
+    var btn = document.getElementById('svcSubmitBtn');
+    if (!name || !url) { msg.textContent = 'Service name and URL are required.'; return; }
+    msg.textContent = '';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>';
+
+    function done(res) {
+      btn.disabled = false; btn.textContent = 'Save';
+      if (res.success) {
+        closeServiceForm();
+        openAdminFromSession();
+      } else {
+        msg.textContent = res.message || 'Something went wrong.';
+      }
+    }
+    function fail(err) {
+      btn.disabled = false; btn.textContent = 'Save';
+      msg.textContent = 'Error: ' + err.message;
+    }
+
+    if (state.editingServiceId) {
+      google.script.run.withSuccessHandler(done).withFailureHandler(fail)
+        .updateService(state.session.deptId, state.editingServiceId, name, desc, url);
+    } else {
+      google.script.run.withSuccessHandler(done).withFailureHandler(fail)
+        .addService(state.session.deptId, name, desc, url);
+    }
+  }
+
+  function removeService(serviceId) {
+    if (!confirm('Delete this service?')) return;
+    google.script.run.withSuccessHandler(function (res) {
+      if (res.success) {
+        openAdminFromSession();
+      } else {
+        alert(res.message || 'Could not delete.');
+      }
+    }).withFailureHandler(function (err) { alert('Error: ' + err.message); })
+      .deleteService(state.session.deptId, serviceId);
+  }
+
+  // ---------------- HELPERS ----------------
+  function showLoadError(err) {
+    document.getElementById('mainContent').innerHTML =
+      '<div class="empty-state">Could not load data.<br>' + escapeHtml(err.message) + '</div>';
+  }
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function escapeAttr(str) { return escapeHtml(str); }
+</script>
+</body>
+</html>
