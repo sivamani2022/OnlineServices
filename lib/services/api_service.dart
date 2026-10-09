@@ -101,11 +101,26 @@ class ApiService {
     return ActionResult(success: res['success'] == true, message: res['message']);
   }
 
-  static Future<Map<String, dynamic>> _post(Map<String, dynamic> data) async {
-    final res = await http
-        .post(Uri.parse(kApiBaseUrl), body: jsonEncode(data))
-        .timeout(const Duration(seconds: 20));
-    return jsonDecode(res.body);
+   static Future<Map<String, dynamic>> _post(Map<String, dynamic> data) async {
+    final client = http.Client();
+    try {
+      var res = await client
+          .post(Uri.parse(kApiBaseUrl), body: jsonEncode(data))
+          .timeout(const Duration(seconds: 30));
+
+      // Apps Script answers POSTs with a redirect; follow it manually with GET.
+      if (res.statusCode >= 300 && res.statusCode < 400) {
+        final location = res.headers['location'];
+        if (location != null) {
+          res = await client
+              .get(Uri.parse(location))
+              .timeout(const Duration(seconds: 30));
+        }
+      }
+      return jsonDecode(res.body);
+    } finally {
+      client.close();
+    }
   }
 }
 
