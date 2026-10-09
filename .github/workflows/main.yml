@@ -1,7 +1,7 @@
 name: Build APK
 
 on:
-  workflow_dispatch:      # lets you click "Run workflow" manually on GitHub
+  workflow_dispatch:
   push:
     branches: [ main ]
 
@@ -13,13 +13,12 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-         channel: 'stable'
+          channel: 'stable'
 
-      # Generates the missing android/ (and other platform) folders —
-      # safe to run even though lib/ and pubspec.yaml already exist.
       - name: Generate platform folders
         run: flutter create . --platforms=android --org com.sit.puducherry --project-name sit_eservices
-        - name: Add internet permission and link-opening support
+
+      - name: Add internet permission and link-opening support
         run: |
           sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <queries>\n        <intent>\n            <action android:name="android.intent.action.VIEW"/>\n            <data android:scheme="https"/>\n        </intent>\n    </queries>\n    <application#' android/app/src/main/AndroidManifest.xml
 
